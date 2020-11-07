@@ -6,6 +6,7 @@ interface IProduct {
   quantity: number;
 }
 
+// Troquei IProduct para Product
 export default interface ICreateOrderDTO {
   customer: Customer;
   products: IProduct[];
