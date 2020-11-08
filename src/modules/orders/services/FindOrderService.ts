@@ -30,8 +30,6 @@ class FindOrderService {
       throw new AppError('Order not founded');
     }
 
-    console.log(order.order_products);
-
     return order;
   }
 }

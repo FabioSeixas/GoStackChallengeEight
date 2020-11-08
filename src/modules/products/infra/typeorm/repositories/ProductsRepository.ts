@@ -60,6 +60,8 @@ class ProductsRepository implements IProductsRepository {
       Object.assign(itemToUpdate, { quantity: correspondingProduct?.quantity });
     });
 
+    await this.ormRepository.save(productsFounded);
+
     return productsFounded;
   }
 }

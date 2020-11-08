@@ -7,20 +7,14 @@ import ICustomersRepository from '@modules/customers/repositories/ICustomersRepo
 import Order from '../infra/typeorm/entities/Order';
 import IOrdersRepository from '../repositories/IOrdersRepository';
 
-interface ICreateOrderProduct {
+interface IProduct {
   id: string;
   quantity: number;
 }
 
 interface IRequest {
   customer_id: string;
-  products: ICreateOrderProduct[];
-}
-
-interface IProduct {
-  product_id: string;
-  price: number;
-  quantity: number;
+  products: IProduct[];
 }
 
 @injectable()
@@ -45,25 +39,49 @@ class CreateOrderService {
 
     const actualProducts = await this.productsRepository.findAllById(products);
 
-    const OrderProducts: IProduct[] = products.map(product => {
+    const readyProducts = products.map(product => {
       const correspondingProduct = actualProducts.find(
         item => item.id === product.id,
       );
 
       if (!correspondingProduct) {
-        throw new AppError('Problem finding product on database');
+        throw new AppError(`Invalid product id: "${product.id}"`);
+      }
+
+      const updatedQuantity = correspondingProduct.quantity - product.quantity;
+
+      if (updatedQuantity < 0) {
+        throw new AppError(
+          `Insuficient quantities for product id "${product.id}"`,
+        );
       }
 
       return {
-        product_id: product.id,
-        quantity: product.quantity,
         price: correspondingProduct.price,
+        quantity: product.quantity,
+        product_id: product.id,
       };
     });
 
+    actualProducts.forEach(actualProduct => {
+      const orderedProduct = products.find(
+        item => item.id === actualProduct.id,
+      );
+
+      if (!orderedProduct) {
+        throw new AppError('invalid product id');
+      }
+
+      const updatedQuantity = actualProduct.quantity - orderedProduct?.quantity;
+
+      Object.assign(actualProduct, { quantity: updatedQuantity });
+    });
+
+    await this.productsRepository.updateQuantity(actualProducts);
+
     const newOrder = await this.ordersRepository.create({
       customer,
-      products: OrderProducts,
+      products: readyProducts,
     });
 
     return newOrder;

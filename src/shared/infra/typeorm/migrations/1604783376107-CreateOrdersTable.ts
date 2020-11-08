@@ -17,6 +17,7 @@ export default class CreateOrdersTable1604783376107
           {
             name: 'customer_id',
             type: 'uuid',
+            isNullable: true,
           },
           {
             name: 'created_at',
@@ -36,7 +37,6 @@ export default class CreateOrdersTable1604783376107
             referencedColumnNames: ['id'],
             columnNames: ['customer_id'],
             onDelete: 'SET NULL',
-            onUpdate: 'CASCADE',
           },
         ],
       }),
